@@ -35,6 +35,10 @@ export default class Room {
         return this._players.length;
     }
 
+    isEmpty() {
+        return this.size == 0;
+    }
+
     _indexOf(player) {
         try {
             if (typeof player === 'string' || player instanceof String) {

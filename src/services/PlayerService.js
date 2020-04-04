@@ -12,6 +12,10 @@ export default {
         GlobalState.removePlayer(sid);
     },
 
+    'getPlayer': (sid) => {
+        return GlobalState.getPlayer(sid);
+    },
+
     'setUsername': (sid, username) => {
         GlobalState.getPlayer(sid).username = username;
     }

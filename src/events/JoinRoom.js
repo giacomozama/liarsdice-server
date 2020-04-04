@@ -9,8 +9,9 @@ export default (socket, io) => {
             let room = RoomService.getRoom(room_id);
             PlayerService.setUsername(socket.id, username);
             RoomService.joinRoom(socket.id, room.id);
-            logger.info('Creating room %s for user %s', room.id, socket.id);
-            fn(room.id);
+            logger.info('Joining room %s for user %s; now contains %d players', room.id, socket.id, room.size);
+            socket.broadcast.to(room.id).emit('JoinRoom', room.players.map((p) => p.username));
+            fn(room.players.map((p)=>p.username));
         } catch {
             return Error('Failed to create room');
         }

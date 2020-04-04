@@ -6,6 +6,7 @@ export default class Player {
     constructor(sid) {
         this._sid = sid;
         this._username = null;
+        this._room = null;
     }
 
     /**
@@ -13,6 +14,14 @@ export default class Player {
      */
     get sid() {
         return this._sid;
+    }
+
+    get room() {
+        return this._room;
+    }
+
+    set room(newRoom) {
+        this._room = newRoom;
     }
 
     /**
