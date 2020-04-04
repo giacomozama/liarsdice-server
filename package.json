@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node ./main.js",
     "dev": "nodemon ./main.js",
-    "test": "jest --runInBand",
-    "e2e": "start-server-and-test start http://localhost:8080 test"
+    "test": "jest --runInBand"
   },
   "author": "Giacomo Zama",
   "license": "ISC",
@@ -22,8 +21,7 @@
     "jest": "^25.2.7",
     "monitor.io": "^0.1.0",
     "nodemon": "^2.0.2",
-    "socket.io-client": "^2.3.0",
-    "start-server-and-test": "^1.10.11"
+    "socket.io-client": "^2.3.0"
   },
   "type": "module"
 }
