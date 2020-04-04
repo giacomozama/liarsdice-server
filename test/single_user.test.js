@@ -1,6 +1,6 @@
 import app from '../src/app.js'
 import io from 'socket.io-client'
-import { TestScheduler } from 'jest';
+import logger from '../src/logger.js';
 
 const address = 'localhost';
 const port = 8080;
@@ -49,21 +49,26 @@ afterEach((done) => {
   if (client1.connected) {
     client1.disconnect();
   }
-  done();
+  setTimeout(() => {
+    expect(app.state.playerCount()).toBe(0),
+    done();
+  },30);
 });
 
 
+describe('The player1', () => {
 
+  test('should be able to create a room', (done) => {
 
-describe('The player', () => {
-
-  test('should be able to set his username', (done) => {
-    client1.emit('SetUsername', 'Johnny');
-
-    setTimeout(() => {
+    let callback = (room_id) => {
       expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
+      expect(app.state.playerCount()).toBe(1);
+      expect(app.state.roomCount()).toBe(1);
+      expect(room_id.length).toBe(6);
       done();
-    }, 50);
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
 
   });
 

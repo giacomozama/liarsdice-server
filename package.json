@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./main.js",
     "dev": "nodemon ./main.js",
-    "test": "jest",
+    "test": "jest --runInBand",
     "e2e": "start-server-and-test start http://localhost:8080 test"
   },
   "author": "Giacomo Zama",

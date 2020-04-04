@@ -1,5 +1,6 @@
 import logger from '../logger.js'
 import PlayerService from '../services/PlayerService.js'
+import RoomService from '../services/RoomService.js';
 
 export default (socket) => {
     socket.on('disconnect', (reason) => {
