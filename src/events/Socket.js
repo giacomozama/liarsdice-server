@@ -11,11 +11,11 @@ export default (app) => {
 
     const io = socketio(app);
     io.on('connection', (socket) => {
-        Connect(socket);
-        SetUsername(socket);
-        Disconnect(socket);
-        CreateRoom(socket);
-        JoinRoom(socket);
+        Connect(socket, io);
+        SetUsername(socket, io);
+        Disconnect(socket, io);
+        CreateRoom(socket, io);
+        JoinRoom(socket, io);
     });
 
     return io;

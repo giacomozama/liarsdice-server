@@ -1,7 +1,7 @@
 import logger from '../logger.js'
 import PlayerService from '../services/PlayerService.js'
 
-export default (socket) => {
+export default (socket, io) => {
     return socket.on('SetUsername', (username) => {
         logger.info('Setting username %s for %s', username, socket.id);
         try {

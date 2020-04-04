@@ -2,7 +2,7 @@ import logger from '../logger.js'
 import PlayerService from '../services/PlayerService.js'
 import RoomService from '../services/RoomService.js'
 
-export default (socket) => {
+export default (socket, io) => {
     return socket.on('CreateRoom', (username, fn) => {
         logger.info('Received event CreateRoom');
         try {
