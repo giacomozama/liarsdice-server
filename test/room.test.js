@@ -70,7 +70,7 @@ afterEach((done) => {
     expect(app.state.playerCount()).toBe(0),
     expect(app.state.roomCount()).toBe(0),
     done();
-  },100);
+  },200);
   //done();
 });
 
@@ -78,11 +78,12 @@ afterEach((done) => {
 describe('The room', () =>{
   test('should increase size when players join', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data) => {
       try {
-        expect(app.state.getRoom(room_id).size).toBe(1);
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {
-          expect(app.state.getRoom(room_id).size).toBe(2);
+        expect(app.state.getRoom(data.room_id).size).toBe(1);
+        client2.emit('JoinRoom', data.room_id, 'Tarello', (data) => {
+          expect(data.players.length).toBe(2); //clientside
+          expect(app.state.getRoom(data.room_id).size).toBe(2); //serverside
           done();
         });
       } catch (error) {
@@ -95,15 +96,15 @@ describe('The room', () =>{
 
   test('should decrease size when players leave', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data) => {
       try {
-        expect(app.state.getRoom(room_id).size).toBe(1);
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {
-          expect(app.state.getRoom(room_id).size).toBe(2);
+        expect(app.state.getRoom(data.room_id).size).toBe(1);
+        client2.emit('JoinRoom', data.room_id, 'Tarello', (data) => {
+          expect(app.state.getRoom(data.room_id).size).toBe(2);
           client2.disconnect();
 
           setTimeout(() => {
-            expect(app.state.getRoom(room_id).size).toBe(1);
+            expect(app.state.getRoom(data.room_id).size).toBe(1);
             done()
           }, 50);
         });
@@ -120,24 +121,48 @@ describe('The room', () =>{
 
 describe('The room owner', () => {
 
-  test('should receive a list of usernames when they join the room', (done) => {
+  test('should receive a the room state when someone joins the room', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data1) => {
       try {
-        client1.on('JoinRoom', (data) => {
-          expect(data).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+        client1.on('RoomChange', (data) => {
+          expect(data.room_status).toEqual('waiting');
+          expect(data.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
           done()
         })
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {});
+        client2.emit('JoinRoom', data1.room_id, 'Tarello', (data) => {});
 
       } catch (error) {
         done(error);
       }
     };
-
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
+  test('should receive a the room state when someone leaves the room', (done) => {
+
+    let callback = (data1) => {
+      try {
+        client1.once('RoomChange', (data) => {
+          expect(data.room_status).toEqual('waiting');
+          expect(data.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+          client1.once('RoomChange', (data2) => {
+            expect(data2.room_status).toEqual('waiting');
+            expect(data2.players.length).toBe(1);
+            expect(data2.players).toEqual(expect.arrayContaining(['Johnny']));
+            done()
+          })
+        })
+        client2.emit('JoinRoom', data1.room_id, 'Tarello', (data) => { client2.disconnect() });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+  });
+
+  /*
   test('should receive an array of username when joining a room', (done) => {
 
     let callback = (room_id) => {
@@ -159,20 +184,21 @@ describe('The room owner', () => {
 
     client1.emit('CreateRoom', 'Johnny', callback);
   });
+  */
 });
 
 describe('The second player', () => {
 
   test('should be able to join a room', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data1) => {
       try {
         expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
         expect(app.state.playerCount()).toBe(2); //the user is already connected
         expect(app.state.roomCount()).toBe(1);
-        expect(room_id.length).toBe(6);
+        expect(data1.room_id.length).toBe(6);
 
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {
+        client2.emit('JoinRoom', data1.room_id, 'Tarello', (data) => {
           try {
             expect(app.state.getPlayer(client2.id).username).toBe('Tarello');
             expect(app.state.playerCount()).toBe(2);
@@ -192,14 +218,14 @@ describe('The second player', () => {
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
-  test('should receive an array of username when joining a room', (done) => {
+  test('should receive the room state when joining a room', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data) => {
       try {
-        expect(room_id.length).toBe(6);
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {
+        expect(data.room_id.length).toBe(6);
+        client2.emit('JoinRoom', data.room_id, 'Tarello', (data) => {
           try {
-            expect(data).toEqual(expect.arrayContaining(['Tarello', 'Johnny']))
+            expect(data.players).toEqual(expect.arrayContaining(['Tarello', 'Johnny']))
             done();
           } catch (error) {
             done(error);

@@ -56,20 +56,21 @@ afterEach((done) => {
 });
 
 
-describe('The player1', () => {
+describe('The player', () => {
 
   test('should be able to create a room', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data) => {
       expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
       expect(app.state.playerCount()).toBe(1);
       expect(app.state.roomCount()).toBe(1);
-      expect(room_id.length).toBe(6);
+      expect(data.room_id.length).toBe(6);
       done();
     };
 
     client1.emit('CreateRoom', 'Johnny', callback);
 
   });
+
 
 });

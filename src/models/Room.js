@@ -23,6 +23,8 @@ export default class Room {
         }
     }
 
+
+
     get id() {
         return this._rid;
     }
@@ -33,6 +35,22 @@ export default class Room {
 
     get size() {
         return this._players.length;
+    }
+
+    get owner() {
+        return this._owner;
+    }
+
+    set owner(player) {
+        this._owner = player;
+    }
+
+    get status() {
+        return this._status;
+    }
+
+    set status(s) {
+        this._status = s;
     }
 
     isEmpty() {

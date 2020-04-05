@@ -11,9 +11,9 @@ export default (socket, io) => {
             logger.info('Setting username %s for %s', username, socket.id);
             PlayerService.setUsername(socket.id, username);
             socket.join(room.id);
-            fn(room.id);
-        } catch {
-            return Error('Failed to create room');
+            fn(RoomService.getRoomStatus(room.id));
+        } catch(error) {
+            return Error('Failed to create room', error);
         }
     });
 }

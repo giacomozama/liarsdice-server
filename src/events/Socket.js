@@ -7,9 +7,12 @@ import JoinRoom from './JoinRoom.js';
 import Disconnect from './Disconnect.js';
 import Connect from './Connect.js';
 
+import slogged from 'slogged';
+
 export default (app) => {
 
     const io = socketio(app);
+    //io.use(slogged())
     io.on('connection', (socket) => {
         Connect(socket, io);
         SetUsername(socket, io);
