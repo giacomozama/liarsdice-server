@@ -1,3 +1,5 @@
+import logger from "../logger";
+
 export default class Room {
     
     constructor(owner) {
@@ -5,6 +7,15 @@ export default class Room {
         this._owner = owner;
         this._status = 'waiting';
         this._players = [owner];
+    }
+
+    toJSON() {
+        return {
+            'id': this.id,
+            'owner': this.owner.username,
+            'players': this.players.map((p) => p.username),
+            'status': this.status,
+        };
     }
 
     addPlayer(player) {

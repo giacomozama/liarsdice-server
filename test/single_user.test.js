@@ -61,10 +61,16 @@ describe('The player', () => {
   test('should be able to create a room', (done) => {
 
     let callback = (data) => {
+      expect(data.success).toBe(true);
+
+      // Client Test
+      expect(data.room.id.length).toBe(6);
+
+      // Server Test
       expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
       expect(app.state.playerCount()).toBe(1);
       expect(app.state.roomCount()).toBe(1);
-      expect(data.room_id.length).toBe(6);
+
       done();
     };
 

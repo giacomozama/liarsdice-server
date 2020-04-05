@@ -1,32 +1,27 @@
 import logger from '../logger.js'
 import GlobalState from '../models/GlobalState.js'
 import Room from '../models/Room.js'
+import Response from '../events/Response.js'
 
 const getRoomStatus = (room_id) => {
     try {
         let room = GlobalState.getRoom(room_id);
-        return {
-            'room_id': room.id,
-            'room_owner': room.owner.username,
-            'players': room.players.map((p) => p.username),
-            'room_status': room.status,
-        }
+        return room.toJSON();
     } catch (error) {
         logger.error('Failed to retrieve room', error);
-        throw error;
+        return error;
     }
 }
 
 export default {
 
-    'getRoomStatus': getRoomStatus,
+    //'getRoomStatus': getRoomStatus,
 
     'createRoom': (owner_sid) => {
         try {
             let owner = GlobalState.getPlayer(owner_sid);
             let room = new Room(owner);
             GlobalState.addRoom(room);
-            logger.info('Created room with id %s', room.id);
             owner.room = room;
             return room;
         } catch {
@@ -111,7 +106,7 @@ export default {
             if (room.isEmpty())
                 return false;
 
-            io.to(room_id).emit(event_name, getRoomStatus(room_id));
+            io.to(room_id).emit(event_name, Response(GlobalState.getRoom(room_id)));
 
             return true;
         } catch (error) {
