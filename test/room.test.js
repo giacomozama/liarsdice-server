@@ -217,7 +217,7 @@ describe('The room owner', () => {
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
-  test('should receive the room state when someone leaves the room', (done) => {
+  test('should receive the room state when someone disconnects', (done) => {
 
     let callback = (data1) => {
       try {
@@ -236,6 +236,34 @@ describe('The room owner', () => {
         client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
           expect(data.success).toBe(true);
           client2.disconnect();
+        });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+  });
+
+  test('should receive the room state when someone leaves', (done) => {
+
+    let callback = (data1) => {
+      try {
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+          client1.once('RoomChange', (data2) => {
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.players).toEqual(expect.arrayContaining(['Johnny']));
+            done();
+          })
+        })
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+          client2.emit('LeaveRoom');
         });
 
       } catch (error) {
@@ -301,7 +329,7 @@ describe('The second player', () => {
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
-  test('should become owner if the owner leaves', (done) => {
+  test('should become owner if the owner disconnects', (done) => {
 
     let callback = (data1) => {
       try {
@@ -318,6 +346,37 @@ describe('The second player', () => {
           })
 
           client1.disconnect();
+        });
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+        });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
+  test('should become owner if the owner leaves the room', (done) => {
+
+    let callback = (data1) => {
+      try {
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+
+          client2.once('RoomChange', (data2) => {
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.owner).toBe('Tarello');
+            done();
+          })
+
+          client1.emit('LeaveRoom');
         });
 
         client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {

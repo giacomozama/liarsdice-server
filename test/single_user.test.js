@@ -78,5 +78,26 @@ describe('The player', () => {
 
   });
 
+  test('should be able to leave a room', (done) => {
+
+
+    let callback = (data) => {
+      expect(data.success).toBe(true);
+      expect(data.room.id.length).toBe(6);
+
+      client1.emit('LeaveRoom');
+
+      setTimeout(() => {
+        //expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
+        expect(app.state.playerCount()).toBe(1);
+        expect(app.state.roomCount()).toBe(0);
+        done();
+      }, 100);
+
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
 
 });

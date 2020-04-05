@@ -6,15 +6,19 @@ import Response from './Response.js';
 
 export default (socket, io) => {
     socket.on('LeaveRoom', () => {
-        logger.info('Socket %s is leaving the room', socket.id);
-        const player = PlayerService.getPlayer(socket.id);
-        player.username = null;
-        if (player.room) {
-            const room_id = player.room.id;
-            const room = RoomService.leaveRoom(socket.id, room_id);
-            if (room) {
+        try {
+            logger.info('Socket %s is leaving the room', socket.id);
+
+            let player = PlayerService.getPlayer(socket.id);
+            socket.leave(player.room.id);
+
+            let room = RoomService.leaveRoom(socket.id, player.room.id);
+            if (room)
                 io.to(room.id).emit('RoomChange', Response(room));
-            }
+
+        } catch (error) {
+            logger.error(error);
+            throw Error('Failed to remove player from room: ' + error.message + ' ' + error.stack);
         }
     });
 }

@@ -67,13 +67,22 @@ export default {
         try {
             let player = GlobalState.getPlayer(sid);
             let room = GlobalState.getRoom(room_id);
+
+            if (!player) {
+                logger.error('Porco dio perchè?');
+            }
+            if (!room) {
+                logger.error('Boh non c\'è la room');
+            }
+
             room.removePlayer(player);
 
-            player.room = null;
+
+            //player.room = null;
             if (room.isEmpty()) {
                 GlobalState.removeRoom(room);
                 return null;
-            } else if (player.id == room.owner.id) {
+            } else if (!room.owner) {
                 room.owner = room.players[0];
             }
 
