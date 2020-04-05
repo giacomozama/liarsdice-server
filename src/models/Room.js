@@ -1,3 +1,5 @@
+import logger from "../logger";
+
 export default class Room {
     
     constructor(owner) {
@@ -5,6 +7,15 @@ export default class Room {
         this._owner = owner;
         this._status = 'waiting';
         this._players = [owner];
+    }
+
+    toJSON() {
+        return {
+            'id': this.id,
+            'owner': this.owner.username,
+            'players': this.players.map((p) => p.username),
+            'status': this.status,
+        };
     }
 
     addPlayer(player) {
@@ -23,6 +34,8 @@ export default class Room {
         }
     }
 
+
+
     get id() {
         return this._rid;
     }
@@ -33,6 +46,22 @@ export default class Room {
 
     get size() {
         return this._players.length;
+    }
+
+    get owner() {
+        return this._owner;
+    }
+
+    set owner(player) {
+        this._owner = player;
+    }
+
+    get status() {
+        return this._status;
+    }
+
+    set status(s) {
+        this._status = s;
     }
 
     isEmpty() {

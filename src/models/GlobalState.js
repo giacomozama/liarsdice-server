@@ -13,11 +13,12 @@ const roomCount = () => {
 };
 
 /**
- * Retrieve a room
- * @param rid The rooms's id
+ * Retrieve a player
+ * @param sid The player's  socket id
  */
-const getPlayer = (rid) => {
-    return _players[rid];
+const getPlayer = (sid) => {
+    let p = _players[sid];
+    return _players[sid];
 };
 
 /**
