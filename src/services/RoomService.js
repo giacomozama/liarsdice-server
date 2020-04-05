@@ -48,6 +48,11 @@ export default {
             //if (player.room)
             //    throw Error('Player is already in a room');
 
+            if (room.size == 1) {
+                room.status = 'waiting';
+            } else if (room.size > 1) {
+                room.status = 'ready';
+            }
 
             player.room = room;
             return room;
@@ -70,6 +75,12 @@ export default {
                 return null;
             } else if (player.id == room.owner.id) {
                 room.owner = room.players[0];
+            }
+
+            if (room.size == 1) {
+                room.status = 'waiting';
+            } else if (room.size > 1) {
+                room.status = 'ready';
             }
 
             return room;
