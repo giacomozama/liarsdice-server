@@ -76,6 +76,74 @@ afterEach((done) => {
 
 
 describe('The room', () =>{
+  test('should have status waiting when created', (done) => {
+
+    let callback = (data) => {
+      try {
+        expect(data.success).toBe(true);
+        expect(data.room.status).toBe('waiting');
+        expect(app.state.getRoom(data.room.id).size).toBe(1);
+        done();
+      } catch (error) {
+        done(error);
+      }
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+  })
+
+  test('should have status ready when second player joins', (done) => {
+
+    let callback = (data) => {
+      try {
+        expect(data.success).toBe(true);
+        expect(data.room.status).toBe('waiting');
+        expect(app.state.getRoom(data.room.id).size).toBe(1);
+
+        client2.emit('JoinRoom', data.room.id, 'Tarello', (data2) => {
+          expect(data2.success).toBe(true);
+          expect(data2.room.status).toBe('ready'); //clientside
+          expect(app.state.getRoom(data2.room.id).size).toBe(2); //serverside
+          done();
+        });
+      } catch (error) {
+        done(error);
+      }
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+  })
+
+  test('should have status ready when second player joins', (done) => {
+
+    let callback = (data) => {
+      try {
+        expect(data.success).toBe(true);
+        expect(data.room.status).toBe('waiting');
+        expect(app.state.getRoom(data.room.id).size).toBe(1);
+
+        client2.emit('JoinRoom', data.room.id, 'Tarello', (data2) => {
+          expect(data2.success).toBe(true);
+          expect(data2.room.status).toBe('ready'); //clientside
+          expect(app.state.getRoom(data2.room.id).size).toBe(2); //serverside
+
+          client1.once('RoomChange', (data3) => {
+            expect(data3.success).toBe(true);
+            expect(data3.room.status).toBe('waiting');
+            done();
+          });
+
+          client2.disconnect();
+
+        });
+      } catch (error) {
+        done(error);
+      }
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+  })
+
   test('should increase size when players join', (done) => {
 
     let callback = (data) => {
@@ -85,7 +153,6 @@ describe('The room', () =>{
 
         client2.emit('JoinRoom', data.room.id, 'Tarello', (data2) => {
           expect(data2.success).toBe(true);
-          done();
           expect(data2.room.players.length).toBe(2); //clientside
 
           expect(app.state.getRoom(data2.room.id).size).toBe(2); //serverside
@@ -98,7 +165,6 @@ describe('The room', () =>{
 
     client1.emit('CreateRoom', 'Johnny', callback);
   })
-
   test('should decrease size when players leave', (done) => {
 
     let callback = (data) => {
@@ -138,7 +204,6 @@ describe('The room owner', () => {
       try {
         client1.on('RoomChange', (data) => {
           expect(data.success).toBe(true);
-          expect(data.room.status).toEqual('waiting');
           expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
           expect(data.room.owner).toEqual('Johnny');
           done()
@@ -152,7 +217,7 @@ describe('The room owner', () => {
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
-  test('should receive the room state when someone leaves the room', (done) => {
+  test('should receive the room state when someone disconnects', (done) => {
 
     let callback = (data1) => {
       try {
@@ -180,29 +245,34 @@ describe('The room owner', () => {
     client1.emit('CreateRoom', 'Johnny', callback);
   });
 
-  /*
-  test('should receive an array of username when joining a room', (done) => {
+  test('should receive the room state when someone leaves', (done) => {
 
-    let callback = (room_id) => {
+    let callback = (data1) => {
       try {
-        expect(room_id.length).toBe(6);
-        client2.emit('JoinRoom', room_id, 'Tarello', (data) => {
-          try {
-            expect(data).toEqual(expect.arrayContaining(['Tarello', 'Johnny']))
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+          client1.once('RoomChange', (data2) => {
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.players).toEqual(expect.arrayContaining(['Johnny']));
             done();
-          } catch (error) {
-            done(error);
-          }
+          })
+        })
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+          client2.emit('LeaveRoom');
         });
 
       } catch (error) {
         done(error);
       }
     };
-
     client1.emit('CreateRoom', 'Johnny', callback);
   });
-  */
+
 });
 
 describe('The second player', () => {
@@ -258,4 +328,67 @@ describe('The second player', () => {
 
     client1.emit('CreateRoom', 'Johnny', callback);
   });
+
+  test('should become owner if the owner disconnects', (done) => {
+
+    let callback = (data1) => {
+      try {
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+
+          client2.once('RoomChange', (data2) => {
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.owner).toBe('Tarello');
+            done();
+          })
+
+          client1.disconnect();
+        });
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+        });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
+  test('should become owner if the owner leaves the room', (done) => {
+
+    let callback = (data1) => {
+      try {
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+
+          client2.once('RoomChange', (data2) => {
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.owner).toBe('Tarello');
+            done();
+          })
+
+          client1.emit('LeaveRoom');
+        });
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+        });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
 });

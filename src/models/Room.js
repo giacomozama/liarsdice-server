@@ -26,11 +26,14 @@ export default class Room {
     }
 
     removePlayer(player) {
-        //TODO change room status
-        //TODO if owner leaves, change owner.
+
         const index = this._indexOf(player);
         if (index > -1) {
+            if (this.owner && this.owner.sid === player.sid) {
+                this.owner = null;
+            }
             this._players.splice(index, 1);
+            player.room = null;
         }
     }
 

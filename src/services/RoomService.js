@@ -1,7 +1,6 @@
 import logger from '../logger.js'
 import GlobalState from '../models/GlobalState.js'
 import Room from '../models/Room.js'
-import Response from '../events/Response.js'
 
 const getRoomStatus = (room_id) => {
     try {
@@ -49,6 +48,11 @@ export default {
             //if (player.room)
             //    throw Error('Player is already in a room');
 
+            if (room.size == 1) {
+                room.status = 'waiting';
+            } else if (room.size > 1) {
+                room.status = 'ready';
+            }
 
             player.room = room;
             return room;
@@ -63,14 +67,29 @@ export default {
         try {
             let player = GlobalState.getPlayer(sid);
             let room = GlobalState.getRoom(room_id);
+
+            if (!player) {
+                logger.error('Porco dio perchè?');
+            }
+            if (!room) {
+                logger.error('Boh non c\'è la room');
+            }
+
             room.removePlayer(player);
 
-            player.room = null;
+
+            //player.room = null;
             if (room.isEmpty()) {
                 GlobalState.removeRoom(room);
                 return null;
-            } else if (player.id == room.owner) {
+            } else if (!room.owner) {
                 room.owner = room.players[0];
+            }
+
+            if (room.size == 1) {
+                room.status = 'waiting';
+            } else if (room.size > 1) {
+                room.status = 'ready';
             }
 
             return room;
@@ -100,18 +119,4 @@ export default {
         }
     },
 
-    'notifyRoom': (io, event_name, room_id) => {
-        try {
-            let room = GlobalState.getRoom(room_id);
-            if (room.isEmpty())
-                return false;
-
-            io.to(room_id).emit(event_name, Response(GlobalState.getRoom(room_id)));
-
-            return true;
-        } catch (error) {
-            logger.error('Cannot notify room %s, %o', room_id, error);
-            throw error;
-        }
-    }
 }
