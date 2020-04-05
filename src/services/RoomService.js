@@ -1,7 +1,6 @@
 import logger from '../logger.js'
 import GlobalState from '../models/GlobalState.js'
 import Room from '../models/Room.js'
-import Response from '../events/Response.js'
 
 const getRoomStatus = (room_id) => {
     try {
@@ -100,18 +99,4 @@ export default {
         }
     },
 
-    'notifyRoom': (io, event_name, room_id) => {
-        try {
-            let room = GlobalState.getRoom(room_id);
-            if (room.isEmpty())
-                return false;
-
-            io.to(room_id).emit(event_name, Response(GlobalState.getRoom(room_id)));
-
-            return true;
-        } catch (error) {
-            logger.error('Cannot notify room %s, %o', room_id, error);
-            throw error;
-        }
-    }
 }
