@@ -258,4 +258,37 @@ describe('The second player', () => {
 
     client1.emit('CreateRoom', 'Johnny', callback);
   });
+
+  test('should become owner if the owner leaves', (done) => {
+
+    let callback = (data1) => {
+      try {
+
+        client1.once('RoomChange', (data) => {
+          expect(data.success).toBe(true);
+          expect(data.room.players).toEqual(expect.arrayContaining(['Johnny', 'Tarello']));
+
+          client2.once('RoomChange', (data2) => {
+            console.warn(data2);
+            expect(data2.success).toBe(true);
+            expect(data2.room.players.length).toBe(1);
+            expect(data2.room.owner).toBe('Tarello');
+            done();
+          })
+
+          client1.disconnect();
+        });
+
+        client2.emit('JoinRoom', data1.room.id, 'Tarello', (data) => {
+          expect(data.success).toBe(true);
+        });
+
+      } catch (error) {
+        done(error);
+      }
+    };
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
 });

@@ -69,7 +69,7 @@ export default {
             if (room.isEmpty()) {
                 GlobalState.removeRoom(room);
                 return null;
-            } else if (player.id == room.owner) {
+            } else if (player.id == room.owner.id) {
                 room.owner = room.players[0];
             }
 
