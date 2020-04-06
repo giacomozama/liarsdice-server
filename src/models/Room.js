@@ -1,7 +1,18 @@
 import logger from "../logger";
 
+/**
+ * @typedef {Object} RoomJson
+ * @property {string} id
+ * @property {string} owner
+ * @property {string[]} players
+ * @property {string} status
+ */
+
 export default class Room {
     
+    /**
+     * @param {Player} owner 
+     */
     constructor(owner) {
         this._rid = Room._genId();
         this._owner = owner;
@@ -9,6 +20,9 @@ export default class Room {
         this._players = [owner];
     }
 
+    /**
+     * @return {RoomJson}
+     */
     toJSON() {
         return {
             'id': this.id,
@@ -18,6 +32,9 @@ export default class Room {
         };
     }
 
+    /**
+     * @param {Player} player 
+     */
     addPlayer(player) {
         //TODO check if not already present?
         //TODO ensure game is not playing
@@ -25,6 +42,9 @@ export default class Room {
         this._players.push(player);
     }
 
+    /**
+     * @param {Player} player 
+     */
     removePlayer(player) {
 
         const index = this._indexOf(player);
@@ -38,39 +58,66 @@ export default class Room {
     }
 
 
-
+    /**
+     * @returns {string}
+     */
     get id() {
         return this._rid;
     }
 
+    /**
+     * @returns {string[]}
+     */
     get players() {
         return this._players;
     }
 
+    /**
+     * @returns {number}
+     */
     get size() {
         return this._players.length;
     }
 
+    /**
+     * @returns {string}
+     */
     get owner() {
         return this._owner;
     }
 
+    /**
+     * @param {Player} player
+     */
     set owner(player) {
         this._owner = player;
     }
 
+    /**
+     * @returns {string}
+     */
     get status() {
         return this._status;
     }
 
+    /**
+     * @param {string}
+     */
     set status(s) {
         this._status = s;
     }
 
+    /**
+     * @returns {boolean}
+     */
     isEmpty() {
         return this.size == 0;
     }
 
+
+    /**
+     * @param {string|Player} player 
+     */
     _indexOf(player) {
         try {
             if (typeof player === 'string' || player instanceof String) {

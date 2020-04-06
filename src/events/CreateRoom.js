@@ -16,7 +16,7 @@ export default (socket, io) => {
             fn(Response(room));
         } catch(error) {
             fn(Response(error));
-            throw Error('Failed to create room' + error.message + ' ' + error.stacktrace);
+            throw Error('Failed to create room ' + error.message + ' ' + error.stacktrace);
         }
     });
 }

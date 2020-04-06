@@ -6,7 +6,14 @@ import logger from '../src/logger.js';
 const address = 'localhost';
 const port = 8081;
 
-let client1, client2;
+let client1, client2, client3;
+
+// Trap changes function
+let trapChange;
+
+// Global response variables;
+let res1, res2, res3;
+
 
 /**
  * Setup WS & HTTP servers
@@ -38,19 +45,66 @@ beforeEach((done) => {
     'force new connection': true,
     transports: ['websocket'],
   });
+  //client1.on('RoomChange', (res)=> room1 = res);
   client2 = io.connect(`http://[${address}]:${port}`, {
     'reconnection delay': 0,
     'reopen delay': 0,
     'force new connection': true,
     transports: ['websocket'],
   });
+  //client2.on('RoomChange', (res)=> room2 = res);
+  client3 = io.connect(`http://[${address}]:${port}`, {
+    'reconnection delay': 0,
+    'reopen delay': 0,
+    'force new connection': true,
+    transports: ['websocket'],
+  });
+  //client3.on('RoomChange', (res)=> room3 = res);
+
+  trapChange = (event_name, before, after, timeout=100) => {
+    res1 = res2 = res3 = null;
+    client1.on(event_name, (res) => {
+      res1 = res;
+    })
+    client2.on(event_name, (res) => {
+      res2 = res;
+    })
+    client3.on(event_name, (res) => {
+      res3 = res;
+    })
+    before();
+    setTimeout(() => {
+      after();
+    }, timeout);
+  }
+
+  let p1 = eventPromise(client1, 'connect').then((s, res)=> eventPromise(s, 'CreateRoom'))
+  let p2 = eventPromise(client2, 'connect')
+  let p3 = eventPromise(client3, 'connect')
+
+  Promise.all(p1, p2, p3).then()
+
   client1.on('connect', () => {
     client2.on('connect', () => {
-      setTimeout(()=>{
-        expect(app.state.playerCount()).toBe(2);
-        expect(app.state.roomCount()).toBe(0);
-        done();
-      }, 100);
+      client3.on('connect', () => {
+        trapChange(
+          'RoomChange',
+          () => {
+            client1.emit('CreateRoom', 'user1', (res) => {
+              client2.emit('JoinRoom', res.room.id, 'user2');
+              client3.emit('JoinRoom', res.room.id, 'user3');
+            })
+          },
+          () => {
+            expect(app.state.playerCount()).toBe(3);
+            expect(app.state.roomCount()).toBe(1);
+            expect(res1.room.status).toBe('ready');
+            expect(res2.room.status).toBe('ready');
+            expect(res3.room.status).toBe('ready');
+            done()
+          }
+        );
+      })
     })
   });
 });
@@ -66,6 +120,9 @@ afterEach((done) => {
   if (client2.connected) {
     client2.disconnect();
   }
+  if (client3.connected) {
+    client3.disconnect();
+  }
   setTimeout(() => {
     expect(app.state.playerCount()).toBe(0),
     expect(app.state.roomCount()).toBe(0),
@@ -74,45 +131,17 @@ afterEach((done) => {
   //done();
 });
 
+describe.only('The room', () =>{
+  test.only('should have status ready when all users are in', (done) => {
+    expect(res1.room.status).toBe('ready');
+    expect(res2.room.status).toBe('ready');
+    expect(res3.room.status).toBe('ready');
+    done();
+  });
 
-describe('The room', () =>{
-  test('should have status waiting when created', (done) => {
+  test('should notify everybody when the game has started', (done) => {
 
-    let callback = (data) => {
-      try {
-        expect(data.success).toBe(true);
-        expect(data.room.status).toBe('waiting');
-        expect(app.state.getRoom(data.room.id).size).toBe(1);
-        done();
-      } catch (error) {
-        done(error);
-      }
-    };
-
-    client1.emit('CreateRoom', 'Johnny', callback);
-  })
-
-  test('should have status ready when second player joins', (done) => {
-
-    let callback = (data) => {
-      try {
-        expect(data.success).toBe(true);
-        expect(data.room.status).toBe('waiting');
-        expect(app.state.getRoom(data.room.id).size).toBe(1);
-
-        client2.emit('JoinRoom', data.room.id, 'Tarello', (data2) => {
-          expect(data2.success).toBe(true);
-          expect(data2.room.status).toBe('ready'); //clientside
-          expect(app.state.getRoom(data2.room.id).size).toBe(2); //serverside
-          done();
-        });
-      } catch (error) {
-        done(error);
-      }
-    };
-
-    client1.emit('CreateRoom', 'Johnny', callback);
-  })
+  });
 
   test('should have status ready when second player joins', (done) => {
 

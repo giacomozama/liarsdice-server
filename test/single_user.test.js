@@ -3,7 +3,7 @@ import io from 'socket.io-client'
 import logger from '../src/logger.js';
 
 const address = 'localhost';
-const port = 8080;
+const port = 8081;
 
 let client1, client2, client3;
 
@@ -51,8 +51,9 @@ afterEach((done) => {
   }
   setTimeout(() => {
     expect(app.state.playerCount()).toBe(0),
+    expect(app.state.roomCount()).toBe(0),
     done();
-  },30);
+  },50);
 });
 
 
@@ -65,6 +66,8 @@ describe('The player', () => {
 
       // Client Test
       expect(data.room.id.length).toBe(6);
+      expect(data.room.players.length).toBe(1);
+      expect(data.room.owner).toBe('Johnny');
 
       // Server Test
       expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
@@ -84,6 +87,26 @@ describe('The player', () => {
     let callback = (data) => {
       expect(data.success).toBe(true);
       expect(data.room.id.length).toBe(6);
+
+      client1.emit('LeaveRoom');
+
+      setTimeout(() => {
+        //expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
+        expect(app.state.playerCount()).toBe(1);
+        expect(app.state.roomCount()).toBe(0);
+        done();
+      }, 100);
+
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
+
+  test('should receive his own chat messages', (done) => {
+
+    let callback = (data) => {
 
       client1.emit('LeaveRoom');
 
