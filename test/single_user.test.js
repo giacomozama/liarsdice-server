@@ -3,7 +3,7 @@ import io from 'socket.io-client'
 import logger from '../src/logger.js';
 
 const address = 'localhost';
-const port = 8080;
+const port = 8081;
 
 let client1, client2, client3;
 

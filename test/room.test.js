@@ -4,7 +4,7 @@ import { TestScheduler } from 'jest';
 import logger from '../src/logger.js';
 
 const address = 'localhost';
-const port = 8080;
+const port = 8081;
 
 let client1, client2;
 
