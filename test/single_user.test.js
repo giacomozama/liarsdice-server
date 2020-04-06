@@ -51,8 +51,9 @@ afterEach((done) => {
   }
   setTimeout(() => {
     expect(app.state.playerCount()).toBe(0),
+    expect(app.state.roomCount()).toBe(0),
     done();
-  },30);
+  },50);
 });
 
 
@@ -65,6 +66,8 @@ describe('The player', () => {
 
       // Client Test
       expect(data.room.id.length).toBe(6);
+      expect(data.room.players.length).toBe(1);
+      expect(data.room.owner).toBe('Johnny');
 
       // Server Test
       expect(app.state.getPlayer(client1.id).username).toBe('Johnny');

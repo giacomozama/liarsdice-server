@@ -8,8 +8,9 @@ export default (socket, io) => {
         try {
             logger.info('Setting username %s for %s', username, socket.id);
             let room = RoomService.getRoom(room_id);
-            PlayerService.setUsername(socket.id, username);
-            room = RoomService.joinRoom(socket.id, room.id);
+            let player = PlayerService.setUsername(socket.id, username);
+
+            room = RoomService.joinRoom(player.sid, room.id);
             socket.join(room.id);
             if (fn) {
                 socket.broadcast.to(room.id).emit('RoomChange', Response(room));

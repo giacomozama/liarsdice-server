@@ -1,89 +1,109 @@
 import logger from '../logger.js'
 import GlobalState from '../models/GlobalState.js'
 import Room from '../models/Room.js'
+import Player from '../models/Player.js'
 
-const getRoomStatus = (room_id) => {
-    try {
-        let room = GlobalState.getRoom(room_id);
-        return room.toJSON();
-    } catch (error) {
-        logger.error('Failed to retrieve room', error);
-        return error;
-    }
-}
+class RoomError extends Error {}
+class RoomJoinError extends RoomError {}
+class RoomCreateError extends RoomError {}
+class RoomLeaveError extends RoomError {}
+class RoomNotFoundError extends RoomError {}
 
 export default {
 
-    //'getRoomStatus': getRoomStatus,
-
-    'createRoom': (owner_sid) => {
+    /**
+     * @param {string|Player} owner The room's owner.
+     * @returns {Room} The newly created room.
+     * @throws {RoomCreateError}
+     */
+    'createRoom': (owner) => {
         try {
-            let owner = GlobalState.getPlayer(owner_sid);
+            logger.debug('createRoom %o', owner)
+            if (!(owner instanceof Player))
+                owner = GlobalState.getPlayer(owner);
+
             let room = new Room(owner);
-            GlobalState.addRoom(room);
             owner.room = room;
-            return room;
-        } catch {
-            logger.error('Failed to create room');
-            return Error('Cannot create room');
-        }
-    },
 
-    'getRoom': (room_id) => {
-        try {
-            let room = GlobalState.getRoom(room_id);
+            GlobalState.addRoom(room);
             return room;
         } catch (error) {
-            logger.error('Failed to retrieve room', error);
-            throw error;
+            logger.error('Failed to create room %o', error);
+            throw RoomCreateError('Cannot create room');
         }
     },
 
+    /**
+     * @param {string} room_id The room's id
+     * @returns {Room} 
+     * @throws {RoomNotFoundError}
+     */
+    'getRoom': (room_id) => {
+        try {
+            return GlobalState.getRoom(room_id);
+        } catch (error) {
+            logger.error('Failed to retrieve room %o', error);
+            throw RoomNotFoundError(`Room ${room_id} not found`);
+        }
+    },
 
-    'joinRoom': (sid, room_id) => {
+    /**
+     * Add a player to a room. 
+     * @param {string} sid The socket id
+     * @param {string} rid The room id
+     * @throws {RoomJoinError}
+     */
+    'joinRoom': (sid, rid) => {
         try {
             let player = GlobalState.getPlayer(sid);
-            let room = GlobalState.getRoom(room_id);
+            let room = GlobalState.getRoom(rid);
+
+            if (room.status == 'full')
+                throw RoomJoinError('The room is full!');
+
+            if (player.inRoom())
+                throw RoomJoinError('The player is already in another room!');
+
             room.addPlayer(player);
-            //if (player.room)
-            //    throw Error('Player is already in a room');
+            player.room = room;
 
             if (room.size == 1) {
                 room.status = 'waiting';
+            } else if (room.size >= 6) {
+                room.status = 'full'
             } else if (room.size > 1) {
                 room.status = 'ready';
             }
 
-            player.room = room;
             return room;
+
         } catch(error) {
-            let str = `Failed to add player ${sid} to room ${room_id}`;
+            if (error instanceof RoomJoinError) {
+                logger.error('Failed to join room %o', error);
+                throw error
+            }
+            let str = `Failed to add player ${sid} to room ${rid}`;
             logger.error(str, error);
-            return error;
+            throw RoomJoinError(str);
         }
     },
 
+    /**
+     * @param {string} sid
+     * @param {string} room_id
+     * @throws
+     */
     'leaveRoom': (sid, room_id) => {
         try {
             let player = GlobalState.getPlayer(sid);
             let room = GlobalState.getRoom(room_id);
-
-            if (!player) {
-                logger.error('Porco dio perchè?');
-            }
-            if (!room) {
-                logger.error('Boh non c\'è la room');
-            }
-
+            
             room.removePlayer(player);
+            if (player.room)
+                player.room = null;
 
-
-            //player.room = null;
             if (room.isEmpty()) {
-                GlobalState.removeRoom(room);
-                return null;
-            } else if (!room.owner) {
-                room.owner = room.players[0];
+                return GlobalState.removeRoom(room);
             }
 
             if (room.size == 1) {
@@ -92,21 +112,30 @@ export default {
                 room.status = 'ready';
             }
 
+            if (!room.owner) {
+                room.owner = room.players[0];
+            }
+
             return room;
         } catch(error) {
-            let str = `Failed to remove player ${sid} to room ${room_id}`;
+            let str = `Failed to remove player ${sid} to room ${room_id} `;
             logger.error(str, error);
-            return error;
+            throw RoomLeaveError(str);
         }
     },
 
+    /**
+     * @param {string} room_id
+     * @param {string} owner_id
+     * @throws
+     */
     'setOwner': (room_id, owner_id) => {
         try {
             let player = GlobalState.getPlayer(sid);
             let room = GlobalState.getRoom(room_id);
             
             if (player.room.id !== room.id) {
-                throw('The player is not in the room!');
+                throw RoomSetOwnerError('The player is not in the room!');
             } else {
                 room.owner = owner;
             }
@@ -115,8 +144,7 @@ export default {
         } catch (error) {
             let str = `Failed to set player ${owner_id} as owner of room ${room_id}`;
             logger.error(str, error);
-            return error;
+            throw RoomSetOwnerError(error.message);
         }
     },
-
 }
