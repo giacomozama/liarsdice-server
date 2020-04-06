@@ -4,11 +4,12 @@
   "description": "Server for Liar's Dice.",
   "main": "src/app.js",
   "scripts": {
-    "start": "node ./main.js",
-    "dev": "nodemon --exec babel-node ./main.js",
+    "build": "babel src -d build",
+    "start": "node ./build/index.js",
+    "dev": "nodemon --exec babel-node ./src/index.js",
     "test": "jest --runInBand"
   },
-  "author": "Giacomo Zama",
+  "author": "Giacomo Zama, Alessandro Fusco <afusco@afus.co>",
   "license": "ISC",
   "dependencies": {
     "slogged": "^1.1.1",
