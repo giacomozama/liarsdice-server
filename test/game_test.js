@@ -9,10 +9,10 @@ const port = 8081;
 let client1, client2, client3;
 
 // Trap changes function
-let trapRoomChange;
+let trapChange;
 
 // Global response variables;
-let room1, room2, room3;
+let res1, res2, res3;
 
 
 /**
@@ -61,27 +61,34 @@ beforeEach((done) => {
   });
   //client3.on('RoomChange', (res)=> room3 = res);
 
-  trapRoomChange = (before, after) => {
-    room1 = room2 = room3 = null;
-    client1.on('RoomChange', (res) => {
-      room1 = res;
+  trapChange = (event_name, before, after, timeout=100) => {
+    res1 = res2 = res3 = null;
+    client1.on(event_name, (res) => {
+      res1 = res;
     })
-    client2.on('RoomChange', (res) => {
-      room2 = res;
+    client2.on(event_name, (res) => {
+      res2 = res;
     })
-    client3.on('RoomChange', (res) => {
-      room3 = res;
+    client3.on(event_name, (res) => {
+      res3 = res;
     })
     before();
     setTimeout(() => {
       after();
-    }, 200);
+    }, timeout);
   }
+
+  let p1 = eventPromise(client1, 'connect').then((s, res)=> eventPromise(s, 'CreateRoom'))
+  let p2 = eventPromise(client2, 'connect')
+  let p3 = eventPromise(client3, 'connect')
+
+  Promise.all(p1, p2, p3).then()
 
   client1.on('connect', () => {
     client2.on('connect', () => {
       client3.on('connect', () => {
-        trapRoomChange(
+        trapChange(
+          'RoomChange',
           () => {
             client1.emit('CreateRoom', 'user1', (res) => {
               client2.emit('JoinRoom', res.room.id, 'user2');
@@ -91,9 +98,9 @@ beforeEach((done) => {
           () => {
             expect(app.state.playerCount()).toBe(3);
             expect(app.state.roomCount()).toBe(1);
-            expect(room1.room.status).toBe('ready');
-            expect(room2.room.status).toBe('ready');
-            expect(room3.room.status).toBe('ready');
+            expect(res1.room.status).toBe('ready');
+            expect(res2.room.status).toBe('ready');
+            expect(res3.room.status).toBe('ready');
             done()
           }
         );
@@ -126,33 +133,15 @@ afterEach((done) => {
 
 describe.only('The room', () =>{
   test.only('should have status ready when all users are in', (done) => {
-    expect(room1.room.status).toBe('ready');
-    expect(room2.room.status).toBe('ready');
-    expect(room3.room.status).toBe('ready');
+    expect(res1.room.status).toBe('ready');
+    expect(res2.room.status).toBe('ready');
+    expect(res3.room.status).toBe('ready');
     done();
   });
 
   test('should notify everybody when the game has started', (done) => {
 
-    let callback = (data) => {
-      try {
-        expect(data.success).toBe(true);
-        expect(data.room.status).toBe('waiting');
-        expect(app.state.getRoom(data.room.id).size).toBe(1);
-
-        client2.emit('JoinRoom', data.room.id, 'Tarello', (data2) => {
-          expect(data2.success).toBe(true);
-          expect(data2.room.status).toBe('ready'); //clientside
-          expect(app.state.getRoom(data2.room.id).size).toBe(2); //serverside
-          done();
-        });
-      } catch (error) {
-        done(error);
-      }
-    };
-
-    client1.emit('StartGame', callback);
-  })
+  });
 
   test('should have status ready when second player joins', (done) => {
 

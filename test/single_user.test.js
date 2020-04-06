@@ -103,4 +103,24 @@ describe('The player', () => {
 
   });
 
+
+  test('should receive his own chat messages', (done) => {
+
+    let callback = (data) => {
+
+      client1.emit('LeaveRoom');
+
+      setTimeout(() => {
+        //expect(app.state.getPlayer(client1.id).username).toBe('Johnny');
+        expect(app.state.playerCount()).toBe(1);
+        expect(app.state.roomCount()).toBe(0);
+        done();
+      }, 100);
+
+    };
+
+    client1.emit('CreateRoom', 'Johnny', callback);
+
+  });
+
 });
