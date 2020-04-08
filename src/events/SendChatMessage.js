@@ -1,5 +1,6 @@
 import logger from '../logger.js'
 import Response from './Response.js'
+import PlayerService from '../models/GlobalState.js'
 
 export default (socket, io) => {
     return socket.on('SendChatMessage', (message, fn) => {

@@ -60,6 +60,8 @@ export default {
 
             if (room.status == 'full')
                 throw RoomJoinError('The room is full!');
+            if (room.status == 'ingame')
+                throw RoomJoinError('The room is already playing a game!');
 
             if (player.inRoom())
                 throw RoomJoinError('The player is already in another room!');

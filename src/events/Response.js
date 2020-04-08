@@ -12,6 +12,10 @@ export default (data) => {
             'success': true,
             'room': data.toJSON()
         }
+    } else if (data instanceof Game) {
+        return {
+            'success': true,
+        }
     } else {
         return {
             'success': true,
