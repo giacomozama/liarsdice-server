@@ -15,6 +15,7 @@ export default class Player {
         this._sid = sid;
         this._username = null;
         this._room = null;
+        this._game = null;
     }
 
     /**
@@ -34,6 +35,14 @@ export default class Player {
     }
 
     /**
+     * The game id is used to identify a player inside of a game.
+     * @param {number} game_id The player's game id
+     */
+    set gid(game_id) {
+        this._gid = game_id;
+    }
+
+    /**
      * The player's current room
      * @returns {Room}
      */
@@ -47,6 +56,22 @@ export default class Player {
      */
     set room(newRoom) {
         this._room = newRoom;
+    }
+
+    /**
+     * The player's current room
+     * @returns {Game}
+     */
+    get game() {
+        return this._game;
+    }
+
+    /**
+     * Set the room of a player. 
+     * @param {Game} newGame;
+     */
+    set game(newGame) {
+        this._game = newGame;
     }
 
     /**
