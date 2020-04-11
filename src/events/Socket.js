@@ -5,6 +5,8 @@ import CreateRoom from './CreateRoom.js';
 import JoinRoom from './JoinRoom.js';
 import LeaveRoom from './LeaveRoom.js';
 import StartGame from './StartGame.js';
+import Claim from './Claim.js';
+import Doubt from './Doubt.js';
 
 import Disconnect from './Disconnect.js';
 import Connect from './Connect.js';
@@ -15,7 +17,10 @@ import slogged from 'slogged';
 
 export default (app) => {
 
-    const io = socketio(app);
+    const io = socketio(app, {
+        'pingTimeout': 10000,
+        'pingInterval': 5000,
+    });
     //io.use(slogged())
     io.on('connection', (socket) => {
         Connect(socket, io);
@@ -25,6 +30,8 @@ export default (app) => {
         LeaveRoom(socket, io);
         SendChatMessage(socket, io);
         StartGame(socket, io);
+        Claim(socket, io);
+        Doubt(socket, io);
     });
 
     return io;

@@ -15,7 +15,6 @@ export default class Player {
         this._sid = sid;
         this._username = null;
         this._room = null;
-        this._game = null;
     }
 
     /**
@@ -63,7 +62,7 @@ export default class Player {
      * @returns {Game}
      */
     get game() {
-        return this._game;
+        return this.room.game;
     }
 
     /**
