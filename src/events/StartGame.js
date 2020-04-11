@@ -25,7 +25,7 @@ export default (socket, io) => {
             if (player && player.room && game) {
                 player.room.status = 'ingame';
 
-                
+
                 Object.keys(game._players).forEach(gid => {
                     const p = game._players[gid];
                     io.to(p.sid).emit('GameStarted', {

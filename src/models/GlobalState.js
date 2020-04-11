@@ -4,9 +4,11 @@ import logger from '../logger.js'
 import Player from './Player.js'
 import Room from './Room.js'
 import winston from 'winston/lib/winston/config';
+import Game from './Game.js';
 
 const _players = {};
 const _rooms = {};
+const _games = {};
 
 /**
  * @returns {number} The number of currently logged players
@@ -21,6 +23,14 @@ const playerCount = () => {
 const roomCount = () => {
     return Object.keys(_rooms).length;
 };
+
+/**
+ * @returns {number} The number of currently ongoing games
+ */
+const gameCount = () => {
+    return Object.keys(_games).length;
+};
+
 
 /**
  * Retrieve a player
@@ -69,6 +79,7 @@ const removePlayer = (player) => {
     }
 };
 
+
 /**
  * Create a new room
  * @param {Room} room
@@ -104,11 +115,55 @@ const removeRoomById = (rid) => {
         logger.warn('Trying to delete a room that doesn\'t exist')
     }
 };
+
 /**
  * @param {Room} room 
  */
 const removeRoom = (room) => {
     return removeRoomById(room.id);
+}
+
+
+/**
+ * Create a new game
+ * @param {Game} game
+ */
+const addGame = (game) => {
+    _games[game.room.id] = game;
+    logger.silly('GlobalState::addGame %o; there are now %d games', game, gameCount());
+};
+
+/**
+ * Retrieve a game
+ * @param {string} rid The id of the game's room
+ * @returns {Room}
+ * @throws
+ */
+const getGame = (rid) => {
+    let r = _games[rid];
+    if (typeof r === 'undefined' || r === null)
+        throw Error(`Game(${rid}) not found.`)
+    return r;
+};
+
+/**
+ * Remove a game from the server
+ * @param {string} rid
+ */
+const removeGameByRoomId = (rid) => {
+    try {
+        getGame(rid)
+        delete _games[rid];
+    } catch {
+        logger.warn('Trying to delete a game that doesn\'t exist')
+    }
+};
+
+/**
+ * @param {Room} room 
+ */
+const removeGameByRoom = (room) => {
+    return removeGameByRoomId(room.id);
 }
 
 export default {
@@ -133,4 +188,9 @@ export default {
     'getRoom': getRoom,
     'removeRoom': removeRoom,
     'removeRoomById': removeRoomById,
+
+    'addGame': addGame,
+    'getGame': getGame,
+    'removeGameByRoom': removeGameByRoom,
+    'removeGameByRoomId': removeGameByRoomId,
 }

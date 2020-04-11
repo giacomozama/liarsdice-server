@@ -13,6 +13,7 @@ import logger from '../logger.js';
 const startGame = (room) => {
     try {
         let game = new Game(room);
+        GlobalState.addGame(game);
         return game;
     } catch (error) {
         logger.error('GameService: Error starting game: %o', error);

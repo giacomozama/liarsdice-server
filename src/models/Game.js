@@ -50,6 +50,10 @@ export default class Game {
         this.rollDice();
     }
 
+    get room() {
+        return this._room;
+    }
+
     get players() {
         return this._players;
     }
