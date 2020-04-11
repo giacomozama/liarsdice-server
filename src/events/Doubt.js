@@ -32,7 +32,8 @@ export default (socket, io) => {
                 return;
             }
 
-            const doubted_player = game.last_player
+            const doubted_player = game.last_player;
+            const old_dice = game.dice;
 
             const obj = GameService.doubt(game, player);
             
@@ -47,6 +48,7 @@ export default (socket, io) => {
                 } else {
                     io.to(p.sid).emit('NextRound', {
                         'success': true,
+                        'round_dice': old_dice,
                         'dice': game.getDice(p.gid),
                         'active_player': game.current_player.gid,
                         'doubter': obj.doubter,
