@@ -67,7 +67,7 @@ export default class Game {
     }
 
     get last_player() {
-        return this._current_player;
+        return this._last_player;
     }
 
     set last_player(player) {
@@ -107,7 +107,7 @@ export default class Game {
     }
 
     getLastClaim() {
-        return this.this._last_claim;
+        return this._last_claim;
     }
 
     /**
@@ -143,8 +143,7 @@ export default class Game {
     countPips(pips) {
         if (pips < 1 || pips > 6)
             throw Error('Chi è lo sfigato che fa sta cosa')
-
-        return Object.keys(p).map((k) => p[k]).flat().filter(d => (d===pips || d === 1)).length;
+        return Object.keys(this._dice).map((k) => this._dice[k]).flat().filter(d => (d===pips || d === 1)).length;
     }
 
     /**
@@ -176,16 +175,17 @@ export default class Game {
         // sanity check
         if (this.isGameOver())
             return this._players.find(p => this.isActive(p.gid)) 
-        
+        else return null
     }
 
     getActivePlayerAfter(game_id) {
-        let gid = playerAfter(game_id);
+        let gid = this.playerAfter(game_id).gid;
         let i;
         for (i = 0; i < this.players.length && !this.isActive(gid); i++) {
             gid = this.playerAfter(gid);
         }
         if (i == this.players.length) throw Error('Tutti i giocatori sono stati eliminati');
+        //logger.warn('The active player after %d(%s) is %d(%s)', game_id, this._players[game_id], gid, this._players[gid]);
         return this._players[gid];
     }
 

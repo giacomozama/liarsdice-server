@@ -73,8 +73,11 @@ const doubt = (game, player) => {
         if (!game.getLastClaim())
             throw Error('GameService: Cannot doubt on first turn');
             
+        const doubter = player
+        const doubted = game.last_player
+
         // Find who is losing the doubt
-        const loser = game.isDoubtCorrect() ? game.last_player : game.current_player;
+        const loser = game.isDoubtCorrect() ? doubted : doubter;
         
         // Remove die from loser
         const keepsOnPlaying = game.removeDie(loser.gid);
@@ -96,8 +99,10 @@ const doubt = (game, player) => {
 
         // Roll dice
         return {
-            'status': 'nextturn',
+            'status': 'nextround',
             'game': nextRound(game),
+            'doubter': doubter.gid,
+            'doubted': doubted.gid,
             'loser': loser.gid,
             'keepsOnPlaying': keepsOnPlaying,
         }
@@ -116,7 +121,7 @@ const disconnect = (game, player) => {
     if (!game.isGameOver) {
         game.current_player = game.getActivePlayerAfter(player);
         return {
-            'status': 'nextturn',
+            'status': 'nextround',
             'game': nextRound(game),
             'quitter': player.gid
         }

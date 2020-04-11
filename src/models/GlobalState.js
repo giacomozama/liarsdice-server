@@ -136,14 +136,14 @@ const addGame = (game) => {
 /**
  * Retrieve a game
  * @param {string} rid The id of the game's room
- * @returns {Room}
+ * @returns {Game}
  * @throws
  */
 const getGame = (rid) => {
-    let r = _games[rid];
-    if (typeof r === 'undefined' || r === null)
+    let g = _games[rid];
+    if (typeof g === 'undefined' || g === null)
         throw Error(`Game(${rid}) not found.`)
-    return r;
+    return g;
 };
 
 /**
