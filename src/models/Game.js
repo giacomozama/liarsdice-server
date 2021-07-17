@@ -120,7 +120,7 @@ export default class Game {
         const amount = this._last_claim.amount;
         const pips = this._last_claim.pips;
         
-        return (amount < this.countPips(pips));
+        return (amount > this.countPips(pips));
     }
 
     isValidClaim(amount, pips) {
