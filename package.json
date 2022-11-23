@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "slogged": "^1.1.1",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
